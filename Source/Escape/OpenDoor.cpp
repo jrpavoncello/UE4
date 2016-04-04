@@ -3,7 +3,6 @@
 #include "Escape.h"
 #include "OpenDoor.h"
 
-
 // Sets default values for this component's properties
 UOpenDoor::UOpenDoor()
 {
@@ -15,23 +14,40 @@ UOpenDoor::UOpenDoor()
 	// ...
 }
 
-
 // Called when the game starts
 void UOpenDoor::BeginPlay()
 {
 	Super::BeginPlay();
+}
 
+void UOpenDoor::OpenDoor()
+{
 	AActor* owner = GetOwner();
 
-	owner->SetActorRotation(FRotator(0, 90, 0));
+	owner->SetActorRotation(FRotator(0, OpenAngle, 0));
 }
 
+void UOpenDoor::CloseDoor()
+{
+	AActor* owner = GetOwner();
+
+	owner->SetActorRotation(FRotator(0, 180, 0));
+}
 
 // Called every frame
-void UOpenDoor::TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction )
+void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
-	Super::TickComponent( DeltaTime, TickType, ThisTickFunction );
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// ...
+	APawn* pawn = GetWorld()->GetFirstPlayerController()->GetPawn();
+
+	if (OpenTrigger && OpenTrigger->IsOverlappingActor(pawn))
+	{
+		OpenDoor();
+	}
+
+	if (CloseTrigger && CloseTrigger->IsOverlappingActor(pawn))
+	{
+		CloseDoor();
+	}
 }
-

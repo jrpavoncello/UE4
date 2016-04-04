@@ -15,28 +15,58 @@ UGrabber::UGrabber()
 	// ...
 }
 
-
 // Called when the game starts
 void UGrabber::BeginPlay()
 {
 	Super::BeginPlay();
 
 	UE_LOG(LogTemp, Warning, TEXT("Grabber reporting for duty!"))
+
+	/// Look for attached physics handle
+	PhysicsHandle = GetOwner()->FindComponentByClass<UPhysicsHandleComponent>();
+
+	if (PhysicsHandle)
+	{
+		
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Could not find physics handle component for %s"), *GetOwner()->GetName())
+	}
+
+	/// Look for attached input component (only available at runtime)
+	InputComponent = GetOwner()->FindComponentByClass<UInputComponent>();
+
+	if (InputComponent)
+	{
+		InputComponent->BindAction("Grab", IE_Pressed, this, &UGrabber::Grab);
+		InputComponent->BindAction("Grab", IE_Released, this, &UGrabber::Release);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Could not find input component for %s"), *GetOwner()->GetName())
+	}
 }
 
+void UGrabber::Grab()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Grab pressed"))
+}
+
+void UGrabber::Release()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Grab released"))
+}
 
 // Called every frame
 void UGrabber::TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction )
 {
 	Super::TickComponent( DeltaTime, TickType, ThisTickFunction );
 	
-	//Get player view point this tick
+	///Get player view point this tick
 	FVector playerVPLocation;
 	FRotator playerVPRotation;
 	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(playerVPLocation, playerVPRotation);
-
-	UE_LOG(LogTemp, Warning, TEXT("Player Location: %s, Player Rotation: %s"),
-		*playerVPLocation.ToString(), *playerVPRotation.ToString())
 
 	FVector lineTraceEnd = playerVPLocation + (playerVPRotation.Vector() * Reach);
 
@@ -50,5 +80,23 @@ void UGrabber::TickComponent( float DeltaTime, ELevelTick TickType, FActorCompon
 		0,
 		10
 	);
+
+	/// Setup query parameters
+	FCollisionQueryParams traceParams = FCollisionQueryParams(FName(TEXT("")), false, GetOwner());
+
+	FHitResult hitResult;
+	
+	if (GetWorld()->LineTraceSingleByObjectType(
+		hitResult,
+		playerVPLocation,
+		lineTraceEnd,
+		FCollisionObjectQueryParams(ECollisionChannel::ECC_PhysicsBody),
+		traceParams
+	))
+	{
+		AActor* actorHit = hitResult.GetActor();
+
+		UE_LOG(LogTemp, Warning, TEXT("I hit %s"), *actorHit->GetName())
+	}
 }
 

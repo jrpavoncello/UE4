@@ -23,7 +23,8 @@ public:
 
 private:
 	// How far ahead of the player can we reach
-	float Reach = 100;
+	UPROPERTY(EditAnywhere)
+	float Reach = 150;
 
 	UPhysicsHandleComponent* PhysicsHandle = nullptr;
 
@@ -32,4 +33,22 @@ private:
 	void Grab();
 
 	void Release();
+
+	void SetupPhysicsHandleComponent();
+
+	void ChangeGrabbedLocation();
+
+	void BindGrabInputs();
+
+	FHitResult GetFirstPhysicsBodyInReach();
+
+	bool GetCollisionByComponent(UPrimitiveComponent* componentCollided, FVector start, FVector end, FHitResult& OutHit);
+
+	FVector GetReachLineTraceEnd(FVector playerVPLocation, FVector playerVPRotation, float reach);
+
+	float GrabbedOffsetDistance;
+
+	FRotator GrabbedOffsetRotation;
+
+	FVector GrabbedObjectOffset;
 };

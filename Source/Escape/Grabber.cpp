@@ -53,8 +53,9 @@ void UGrabber::ChangeGrabbedLocation()
 		FRotator playerVPRotation;
 		GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(playerVPLocation, playerVPRotation);
 
+		/// Use the same starting point, but instead use the distance we calculated in the initial grab
 		PhysicsHandle->SetTargetLocation(
-			GetReachLineTraceEnd(playerVPLocation, playerVPRotation.Vector(), Reach - GrabbedOffsetDistance) /*+ GrabbedObjectOffset*/);
+			GetReachLineTraceEnd(playerVPLocation, playerVPRotation.Vector(), GrabbedOffsetDistance));
 	}
 }
 
@@ -153,34 +154,23 @@ void UGrabber::Grab()
 
 		FVector lineTraceEnd = GetReachLineTraceEnd(playerVPLocation, playerVPRotation.Vector(), Reach);
 
-		FVector adjustedHitLocation = hitResult.Location + FVector(0, 0, -1);
+		FVector componentActorLocation = componentToGrab->GetOwner()->GetActorLocation();
 
-		FHitResult reverseHitResult;
-		if (GetCollisionByComponent(componentToGrab, 
-			adjustedHitLocation + (FRotator(0, playerVPRotation.Yaw, playerVPRotation.Roll).Vector() * Reach),
-			adjustedHitLocation, reverseHitResult))
-		{
-			auto reverseHitLocation = reverseHitResult.Location;
+		/// Use the X and Y components of the object we just grabbed, but use the Z component of where we grabbed it
+		FVector grabVector = FVector(componentActorLocation.X, componentActorLocation.Y, hitResult.Location.Z);
 
-			auto averageHitLocation = (adjustedHitLocation + reverseHitLocation) / 2;
+		/// Make sure we calculate the distance between the player and where we are going to grab the object by.
+		/// This will be used in place of the Reach parameter during a grab.
+		GrabbedOffsetDistance = (grabVector - playerVPLocation).Size();
 
-			FVector grabbedDisplacementVector = averageHitLocation - lineTraceEnd;
+		UE_LOG(LogTemp, Warning, TEXT("Calculated grabbed offset %f"), GrabbedOffsetDistance)
 
-			FVector componentActorLocation = componentToGrab->GetOwner()->GetActorLocation();
-
-			GrabbedObjectOffset = FVector(0, 0, (componentActorLocation - adjustedHitLocation).Z);
-
-			GrabbedOffsetDistance = grabbedDisplacementVector.Size();
-
-			UE_LOG(LogTemp, Warning, TEXT("Calculated grabbed offset %f"), GrabbedOffsetDistance)
-
-				PhysicsHandle->GrabComponent(
-					componentToGrab,
-					NAME_None,
-					averageHitLocation,
-					true
-				);
-		}
+			PhysicsHandle->GrabComponent(
+				componentToGrab,
+				NAME_None,
+				grabVector,
+				true
+			);
 	}
 }
 

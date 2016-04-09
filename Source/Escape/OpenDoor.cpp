@@ -20,20 +20,6 @@ void UOpenDoor::BeginPlay()
 	Super::BeginPlay();
 }
 
-void UOpenDoor::OpenDoor()
-{
-	AActor* owner = GetOwner();
-
-	owner->SetActorRotation(FRotator(0, OpenAngle, 0));
-}
-
-void UOpenDoor::CloseDoor()
-{
-	AActor* owner = GetOwner();
-
-	owner->SetActorRotation(FRotator(0, 180, 0));
-}
-
 // Called every frame
 void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
@@ -41,14 +27,13 @@ void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 
 	APawn* pawn = GetWorld()->GetFirstPlayerController()->GetPawn();
 
-	if (OpenTrigger && GetTotalMassOfActorsOnPlate() > 40)
+	if (OpenTrigger && GetTotalMassOfActorsOnPlate() > TriggerMass)
 	{
-		OpenDoor();
+		OnOpenRequest.Broadcast();
 	}
-
-	if (CloseTrigger && CloseTrigger->IsOverlappingActor(pawn))
+	else
 	{
-		CloseDoor();
+		OnCloseRequest.Broadcast();
 	}
 }
 
@@ -63,7 +48,7 @@ float UOpenDoor::GetTotalMassOfActorsOnPlate()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Found Overlapping Actor %s"), *Actor->GetName())
 		
-		UPrimitiveComponent* primitiveComponent = (UPrimitiveComponent*)Actor->GetComponentByClass<UPrimitiveComponent>();
+		UPrimitiveComponent* primitiveComponent = (UPrimitiveComponent*)Actor->FindComponentByClass<UPrimitiveComponent>();
 
 		TotalMass += primitiveComponent->GetMass();
 	}

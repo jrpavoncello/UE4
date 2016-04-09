@@ -41,7 +41,7 @@ void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 
 	APawn* pawn = GetWorld()->GetFirstPlayerController()->GetPawn();
 
-	if (OpenTrigger && OpenTrigger->IsOverlappingActor(pawn))
+	if (OpenTrigger && GetTotalMassOfActorsOnPlate() > 40)
 	{
 		OpenDoor();
 	}
@@ -50,4 +50,25 @@ void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 	{
 		CloseDoor();
 	}
+}
+
+float UOpenDoor::GetTotalMassOfActorsOnPlate()
+{
+	float TotalMass = 0;
+
+	TArray<AActor*> OverlappingActors;
+	OpenTrigger->GetOverlappingActors(OverlappingActors);
+
+	for (AActor* Actor : OverlappingActors)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Found Overlapping Actor %s"), *Actor->GetName())
+		
+		UPrimitiveComponent* primitiveComponent = (UPrimitiveComponent*)Actor->GetComponentByClass<UPrimitiveComponent>();
+
+		TotalMass += primitiveComponent->GetMass();
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("Total mass is %f"), TotalMass)
+
+	return TotalMass;
 }

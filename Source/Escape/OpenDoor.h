@@ -25,6 +25,8 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	float GetTotalMassOfActorsOnPlate();
+
 private:
 	UPROPERTY(EditAnywhere)
 		float OpenAngle = 90;
@@ -34,7 +36,4 @@ private:
 
 	UPROPERTY(EditAnywhere)
 		ATriggerVolume* CloseTrigger;
-
-	UPROPERTY(EditAnywhere)
-		AActor* Instigator; // Pawn is an AActor
 };

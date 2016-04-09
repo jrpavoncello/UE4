@@ -165,12 +165,12 @@ void UGrabber::Grab()
 
 		UE_LOG(LogTemp, Warning, TEXT("Calculated grabbed offset %f"), GrabbedOffsetDistance)
 
-			PhysicsHandle->GrabComponent(
-				componentToGrab,
-				NAME_None,
-				grabVector,
-				true
-			);
+		PhysicsHandle->GrabComponent(
+			componentToGrab,
+			NAME_None,
+			grabVector,
+			true
+		);
 	}
 }
 
